@@ -10,52 +10,6 @@ use std::{
     process::exit,
 };
 
-#[derive(Deserialize, Debug, Clone, Copy)]
-pub struct Limits {
-    /// Memory limit in bytes
-    pub memory: Option<u64>,
-    /// Time limit in milliseconds
-    pub time: Option<u64>,
-    /// Process count limit
-    pub process_count: Option<u64>,
-}
-
-impl Limits {
-    fn default_num_procs() -> u64 {
-        16
-    }
-
-    fn default_memory() -> u64 {
-        256 * 1024 * 1024
-    }
-
-    fn default_time() -> u64 {
-        3000
-    }
-
-    pub fn time(self) -> u64 {
-        self.time.unwrap_or_else(Self::default_time)
-    }
-
-    pub fn memory(self) -> u64 {
-        self.memory.unwrap_or_else(Self::default_memory)
-    }
-
-    pub fn process_count(self) -> u64 {
-        self.process_count.unwrap_or_else(Self::default_num_procs)
-    }
-}
-
-impl Default for Limits {
-    fn default() -> Limits {
-        Limits {
-            memory: Some(Limits::default_memory()),
-            time: Some(Limits::default_time()),
-            process_count: Some(Limits::default_num_procs()),
-        }
-    }
-}
-
 #[derive(Deserialize, Default, Debug, Clone)]
 pub struct Command {
     #[serde(default = "Command::default_env")]
@@ -93,7 +47,7 @@ pub struct Toolchain {
     pub run_command: Command,
 
     #[serde(rename = "build-limits", default)]
-    pub limits: Limits,
+    pub limits: pom::Limits,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -101,9 +55,6 @@ pub struct Problem {
     pub name: String,
 
     pub code: String,
-
-    #[serde(default)]
-    pub limits: Limits,
 
     #[serde(skip)]
     pub title: String,

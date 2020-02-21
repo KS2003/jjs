@@ -1,5 +1,5 @@
+use anyhow::bail;
 use serde::{Deserialize, Serialize};
-
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CustomCheck {
     #[serde(rename = "pass-correct")]
@@ -22,14 +22,15 @@ pub struct RawTestsSpec {
     pub map: String,
     pub testgen: Option<Vec<String>>,
     pub files: Option<String>,
+    pub limits: pom::Limits,
 }
 
 impl RawTestsSpec {
-    fn parse_mapping_chunk(&self, ch: &str) -> Result<Vec<u32>, String> {
+    fn parse_mapping_chunk(&self, ch: &str) -> anyhow::Result<Vec<u32>> {
         if ch.contains("..") {
             let parts: Vec<_> = ch.split("..").collect();
             if parts.len() != 2 {
-                return Err("range map chunk must look like x..y".to_string());
+                bail!("range map chunk must look like x..y");
             }
             let parts: Result<Vec<_>, _> = parts.into_iter().map(|x| x.parse::<u32>()).collect();
             match parts {
@@ -37,15 +38,13 @@ impl RawTestsSpec {
                     let begin = parts[0];
                     let end = parts[1];
                     if begin > end {
-                        return Err(
-                            "range begin must be less than or equal to range end".to_string()
-                        );
+                        bail!("range begin must be less than or equal to range end");
                     }
                     let idxs: Vec<_> = std::ops::RangeInclusive::new(begin, end).collect();
                     return Ok(idxs);
                 }
                 Err(e) => {
-                    return Err(format!("couldn't parse range bound: {}", e.to_string()));
+                    bail!("couldn't parse range bound: {}", e);
                 }
             }
         }
@@ -56,7 +55,7 @@ impl RawTestsSpec {
         }
     }
 
-    fn parse_mapping(&self) -> Result<Vec<u32>, String> {
+    fn parse_mapping(&self) -> anyhow::Result<Vec<u32> {
         let chunks = self.map.split(',');
         let mut out = vec![];
         for ch in chunks {
@@ -65,7 +64,7 @@ impl RawTestsSpec {
                     out.extend(idxs.into_iter());
                 }
                 err => {
-                    return err;
+                    bail!("failed to parse '{}': {}", ch, err)
                 }
             }
         }
@@ -167,6 +166,9 @@ pub struct RawProblem {
 
     #[serde(rename = "valuer-cfg")]
     pub valuer_cfg: Option<String>,
+
+    #[serde(default)]
+    pub limits: pom::Limits,
 }
 
 impl RawProblem {
@@ -266,6 +268,7 @@ impl RawProblem {
             }),
             valuer: self.valuer,
             valuer_cfg: self.valuer_cfg,
+            limits: self.limits,
         };
 
         Ok((out, warnings))
@@ -289,4 +292,5 @@ pub struct Problem {
     pub check_options: CheckOptions,
     pub valuer: String,
     pub valuer_cfg: Option<String>,
+    pub limits: pom::Limits,
 }

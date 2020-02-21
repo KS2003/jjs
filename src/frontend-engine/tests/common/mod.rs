@@ -55,7 +55,6 @@ impl EnvBuilder {
             problems: vec![cfg::Problem {
                 name: "dev-problem".to_string(),
                 code: "A".to_string(),
-                limits: Default::default(),
                 title: "DEV PROBLEM".to_string(),
                 loaded: true,
             }],

@@ -8,7 +8,7 @@ use std::{
 struct Importer<'a> {
     src: &'a Path,
     dest: &'a Path,
-    problem_cfg: crate::cfg::RawProblem,
+    problem_cfg: crate::manifest::RawProblem,
     known_generators: HashSet<String>,
     doc: roxmltree::Node<'a, 'a>,
 }
@@ -231,7 +231,7 @@ impl<'a> Importer<'a> {
             }
             assert_eq!(test_node.tag_name().name(), "test");
             cnt += 1;
-            let mut ts = crate::cfg::RawTestsSpec {
+            let mut ts = crate::manifest::RawTestsSpec {
                 map: cnt.to_string(),
                 testgen: None,
                 files: None,
@@ -309,10 +309,10 @@ impl<'a> Importer<'a> {
         let m = &mut self.problem_cfg;
         m.valuer = "icpc".to_string();
         m.check_type = "builtin".to_string();
-        m.builtin_check = Some(crate::cfg::BuiltinCheck {
+        m.builtin_check = Some(crate::manifest::BuiltinCheck {
             name: "polygon-compat".to_string(),
         });
-        m.check_options = Some(crate::cfg::CheckOptions {
+        m.check_options = Some(crate::manifest::CheckOptions {
             args: vec!["assets/module-checker/bin".to_string()],
         });
         let mut random_seed = [0; 32];
